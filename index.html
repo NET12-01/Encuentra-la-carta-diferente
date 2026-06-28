@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Encuentra la Carta Diferente</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #eef6ff;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+  h1 {
+    color: #0a3d91;
+    font-size: 2rem;
+  }
+  #game {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    max-width: 650px;
+    margin: 30px auto;
+  }
+ .card {
+    background: #ffffff;
+    border: 4px solid #0a3d91;
+    border-radius: 18px;
+    height: 130px;
+    font-size: 2.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+ .card:hover { transform: scale(1.05); }
+  #message {
+    font-size: 1.4rem;
+    color: #0a3d91;
+    min-height: 40px;
+  }
+  button {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    padding: 12px 22px;
+    border-radius: 12px;
+    background-color: #0a3d91;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>Encuentra la carta diferente</h1>
+<div id="game"></div>
+<div id="message"></div>
+<button onclick="nuevaRonda()">Nueva ronda</button>
+
+<script>
+// ---- VOZ ----
+function hablar(texto) {
+  if ("speechSynthesis" in window) {
+    const u = new SpeechSynthesisUtterance(texto);
+    u.lang = "es-ES";
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+}
+
+// ---- CATEGORÍAS ----
+const categorias = {
+  animales: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🙈", "🙉", "🙊", "🐒", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🪱", "🐛", "🦋", "🐌", "🐞", "🐜", "🪰", "🪲", "🪳", "🦟", "🦗", "🕷️", "🕸️", "🦂", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🦣", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🦬", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🦮", "🐕‍🦺", "🐈", "🐈‍⬛", "🐓", "🦃", "🦤", "🦚", "🦜", "🦢", "🦩", "🕊️", "🐇", "🦝", "🦨", "🦡", "🦫", "🦦", "🦥", "🐁", "🐀", "🐿️"],
+  comida: ["🍎", "🍏", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕", "🥪", "🥙", "🧆", "🌮", "🌯", "🫔", "🥗", "🥘", "🫕", "🥫", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🦪", "🍤", "🍙", "🍚", "🍘", "🍥", "🥠", "🥮", "🍢", "🍡", "🍧", "🍨", "🍦", "🥧", "🧁", "🍰", "🎂", "🍮", "🍭", "🍬", "🍫", "🍿", "🍩", "🍪", "🌰", "🥜", "🍯", "🥛", "🍼", "🫖", "☕", "🍵", "🧃", "🥤", "🧋", "🍶", "🍺", "🍻", "🥂", "🍷", "🥃", "🍸", "🍹", "🧉", "🍾", "🧊"],
+  objetos: ["⌚", "📱", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "🖲️", "🕹️", "💽", "💾", "💿", "📀", "📼", "📷", "📸", "📹", "🎥", "📽️", "🎞️", "📞", "☎️", "📟", "📠", "📺", "📻", "🎙️", "🎚️", "🎛️", "🧭", "⏱️", "⏲️", "⏰", "🕰️", "⌛", "⏳", "📡", "🔋", "🔌", "💡", "🔦", "🕯️", "🪔", "🧯", "🛢️", "💸", "💵", "💴", "💶", "💷", "🪙", "💰", "💳", "💎", "⚖️", "🪜", "🧰", "🔧", "🔨", "⚒️", "🛠️", "⛏️", "🔩", "⚙️", "🪤", "🧱", "⛓️", "🧲", "🔫", "💣", "🧨", "🪓", "🔪", "🗡️", "⚔️", "🛡️", "🚬", "⚰️", "🪦", "⚱️", "🏺", "🔮", "📿", "🧿", "🪬", "💈", "⚗️", "🔭", "🔬", "🕳️", "🩹", "🩺", "💊", "🩸", "🧬", "🦠", "🧫", "🧪", "🌡️", "🧹", "🪠", "🧽", "🪣", "🧴", "🛁", "🪥", "🧻", "🪒", "🧷", "🪡", "🧵", "🪢", "🧶", "👓", "🕶️", "🥽", "🥼", "🦺", "👔", "👕", "👖", "🧣", "🧤", "🧥", "🧦", "👗", "👘", "🥻", "🩱", "🩲", "🩳", "👙", "👚", "👛", "👜", "👝", "🛍️", "🎒", "👞", "👟", "🥾", "🥿", "👠", "👡", "🩴", "👢", "👑", "👒", "🎩", "🎓", "🧢", "⛑️", "🪖", "💄", "💍", "🪭"],
+  transporte: ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🛴", "🚲", "🛵", "🏍️", "🛺", "🚨", "🚔", "🚍", "🚘", "🚖", "🚡", "🚠", "🚟", "🚃", "🚋", "🚞", "🚝", "🚄", "🚅", "🚈", "🚂", "🚆", "🚇", "🚊", "🚉", "✈️", "🛫", "🛬", "🛩️", "💺", "🛰️", "🚀", "🛸", "🚁", "🛶", "⛵", "🚤", "🛥️", "🚢", "🛟", "⚓"],
+  deportes: ["⚽", "⚾", "🥎", "🏀", "🏐", "🏈", "🏉", "🎾", "🥏", "🎳", "🏏", "🏑", "🏒", "🥍", "🏓", "🏸", "🥊", "🥋", "🥅", "⛳", "⛸️", "🎣", "🤿", "🎿", "🛷", "🛹", "🪁", "🛼", "🪀", "🎯", "🪃", "🎱", "🎮", "🕹️", "🎲", "🧩", "♟️", "🎭", "🎨", "🎤", "🎧", "🎼", "🎹", "🥁", "🪘", "🎷", "🎺", "🪗", "🎸", "🪕", "🎻", "🪇"],
+  naturaleza: ["🌵", "🎄", "🌲", "🌳", "🌴", "🪵", "🌱", "🌿", "☘️", "🍀", "🎍", "🪴", "🎋", "🍃", "🍂", "🍁", "🍄", "🐚", "🪨", "🌾", "💐", "🌷", "🌹", "🥀", "🌺", "🌸", "🌼", "🌻", "🌞", "🌝", "🌛", "🌜", "🌚", "🌕", "🌖", "🌗", "🌘", "🌑", "🌒", "🌓", "🌔", "🌡️", "🌤️", "⛅", "🌥️", "🌦️", "🌧️", "⛈️", "🌩️", "🌨️", "❄️", "☃️", "⛄", "🌬️", "💨", "🌪️", "🌫️", "🌈", "☔", "💧", "💦", "🌊", "🔥", "💥", "✨", "🌟", "💫"],
+  banderas: ["🇦🇷", "🇧🇷", "🇨🇱", "🇺🇾", "🇵🇾", "🇧🇴", "🇵🇪", "🇨🇴", "🇻🇪", "🇪🇨", "🇲🇽", "🇺🇸", "🇨🇦", "🇬🇧", "🇮🇪", "🇫🇷", "🇪🇸", "🇵🇹", "🇮🇹", "🇩🇪", "🇳🇱", "🇧🇪", "🇨🇭", "🇦🇹", "🇸🇪", "🇳🇴", "🇩🇰", "🇫🇮", "🇵🇱", "🇨🇿", "🇸🇰", "🇭🇺", "🇷🇴", "🇬🇷", "🇹🇷", "🇷🇺", "🇺🇦", "🇮🇱", "🇸🇦", "🇦🇪", "🇶🇦", "🇰🇼", "🇮🇳", "🇵🇰", "🇧🇩", "🇨🇳", "🇯🇵", "🇰🇷", "🇰🇵", "🇹🇼", "🇭🇰", "🇸🇬", "🇲🇾", "🇮🇩", "🇵🇭", "🇹🇭", "🇻🇳", "🇦🇺", "🇳🇿", "🇿🇦", "🇪🇬", "🇲🇦", "🇳🇬", "🇰🇪"],
+  caritas: ["😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "☺️", "😚", "😙", "🥲", "😋", "😛", "😜", "🤪", "😝", "🤑", "🤗", "🤭", "🫢", "🫣", "🤫", "🤔", "🫡", "🤐", "🤨", "😐", "😑", "😶", "🫥", "😏", "😒", "🙄", "😬", "🤥", "😌", "😔", "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵", "🥶", "🥴", "😵", "🤯", "🤠", "🥳", "🥸", "😎", "🤓", "🧐", "😕", "🫤", "😟", "🙁", "☹️", "😮", "😯", "😲", "😳", "🥺", "😦", "😧", "😨", "😰", "😥", "😢", "😭", "😤", "😠", "😡", "🤬"],
+  simbolos: ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☪️", "🕉️", "☸️", "✡️", "🔯", "🕎", "☯️", "☦️", "🛐", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", "🆔", "⚛️", "🉑", "☢️", "☣️", "📴", "📳", "🈶", "🈚", "🈸", "🈺", "🈷️", "✴️", "🆚", "💮", "🉐", "㊙️", "㊗️", "🈴", "🈵", "🈹", "🈲", "🅰️", "🅱️", "🆎", "🆑", "🅾️", "🆘", "❌", "⭕", "🛑", "⛔", "📛", "🚫", "💯", "💢", "♨️", "🚷", "🚯", "🚳", "🚱", "🔞", "📵", "🚭", "❗", "❕", "❓", "❔", "‼️", "⁉️", "🔅", "🔆", "〽️", "⚠️", "🚸", "🔱", "⚜️", "🔰", "♻️", "✅", "🈯", "💹", "❇️", "✳️", "❎", "🌐", "💠", "Ⓜ️", "🌀", "💤", "🏧", "🚾", "♿", "🅿️", "🛗"],
+  palabras: ["casa", "perro", "gato", "árbol", "sol", "luna", "estrella", "agua", "fuego", "tierra", "aire", "amor", "paz", "feliz", "triste", "rápido", "lento", "grande", "pequeño", "rojo", "azul", "verde", "amarillo", "libro", "mesa", "silla", "puerta", "ventana", "coche", "bici", "tren", "avión", "barco", "ciudad", "pueblo", "montaña", "río", "mar", "playa", "bosque", "campo", "flor", "fruta", "pan", "leche", "queso", "café", "té", "amigo", "familia", "trabajo", "escuela", "maestro", "alumno", "música", "canción", "baile", "juego", "pelota", "tiempo", "día", "noche", "mañana", "tarde", "ayer", "hoy", "siempre", "nunca", "todo", "nada", "algo", "mucho", "poco", "primero", "último", "nuevo", "viejo", "joven", "fuerte", "débil", "caliente", "frío", "dulce", "salado", "luz", "sombra", "cielo", "nube", "lluvia", "viento", "nieve", "verano", "invierno", "primavera", "otoño"],
+  numeros: Array.from({length:4150}, (_,i) => String(i+1))
+};
+
+const totalCartas = 8;
+
+// ---- JUEGO ----
+function nuevaRonda() {
+  const game = document.getElementById("game");
+  const msg = document.getElementById("message");
+  game.innerHTML = "";
+  msg.textContent = "Encuentra la carta diferente";
+  hablar("Encuentra la carta diferente");
+
+  const tipos = Object.keys(categorias);
+  const categoria = tipos[Math.floor(Math.random() * tipos.length)];
+  const elementos = categorias[categoria];
+
+  const comun = elementos[Math.floor(Math.random() * elementos.length)];
+  let diferente;
+  do {
+    diferente = elementos[Math.floor(Math.random() * elementos.length)];
+  } while (diferente === comun);
+
+  let cartas = [];
+  for (let i = 0; i < totalCartas - 1; i++) cartas.push(comun);
+  cartas.push(diferente);
+  cartas.sort(() => Math.random() - 0.5);
+
+  cartas.forEach(valor => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.textContent = valor;
+
+    div.onclick = () => {
+      const desc = describirCarta(valor, categoria);
+      if (valor === diferente) {
+        msg.textContent = `Elegiste ${desc}. Es la diferente. ¡Muy bien!`;
+        hablar(`Elegiste ${desc}. Es la diferente. Muy bien.`);
+      } else {
+        msg.textContent = `Elegiste ${desc}. No es la diferente.`;
+        hablar(`Elegiste ${desc}. No es la diferente.`);
+      }
+    };
+
+    game.appendChild(div);
+  });
+}
+
+// ---- DESCRIPCIÓN PARA VOZ ----
+function describirCarta(valor, categoria) {
+  if (categoria === "numeros") return "el número " + valor;
+  if (categoria === "colores") return "el color " + valor;
+  if (categoria === "animales") return "el animal " + valor;
+  if (categoria === "comida") return "la comida " + valor;
+  if (categoria === "objetos") return "el objeto " + valor;
+  if (categoria === "cuerpo") return "la parte del cuerpo " + valor;
+  if (categoria === "transporte") return "el transporte " + valor;
+  if (categoria === "deportes") return "el deporte " + valor;
+  if (categoria === "naturaleza") return "la naturaleza " + valor;
+  if (categoria === "banderas") return "la bandera " + valor;
+  if (categoria === "caritas") return "la carita " + valor;
+  if (categoria === "simbolos") return "el símbolo " + valor;
+  if (categoria === "palabras") return "la palabra " + valor;
+  return valor;
+}
+
+// INICIO
+nuevaRonda();
+</script>
+
+</body>
+</html>
